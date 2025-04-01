@@ -168,7 +168,7 @@ Scooby::Scooby(string type) : Prefetcher(type)
 
 	if(knob::scooby_enable_featurewise_engine)
 	{
-		brain_featurewise = new LearningEngineFeaturewise(this,
+		brain_featurewise = new DoubleLearningEngineFeaturewise(this,
 														knob::scooby_alpha, knob::scooby_gamma, knob::scooby_epsilon,
 														knob::scooby_max_actions,
 														knob::scooby_seed,
@@ -357,30 +357,27 @@ Scooby_STEntry* Scooby::update_local_state(uint64_t pc, uint64_t page, uint32_t 
 		signature_table.push_back(stentry);
 		return stentry;
 	}
-	else
+	if(signature_table.size() >= knob::scooby_st_size)
 	{
-		if(signature_table.size() >= knob::scooby_st_size)
+		stats.st.evict++;
+		stentry = signature_table.front();
+		signature_table.pop_front();
+		if(knob::scooby_access_debug)
 		{
-			stats.st.evict++;
-			stentry = signature_table.front();
-			signature_table.pop_front();
-			if(knob::scooby_access_debug)
+			recorder->record_access_knowledge(stentry);
+			if(knob::scooby_print_access_debug)
 			{
-				recorder->record_access_knowledge(stentry);
-				if(knob::scooby_print_access_debug)
-				{
-					print_access_debug(stentry);
-				}
+				print_access_debug(stentry);
 			}
-			delete stentry;
 		}
-
-		stats.st.insert++;
-		stentry = new Scooby_STEntry(page, pc, offset);
-		recorder->record_trigger_access(page, pc, offset);
-		signature_table.push_back(stentry);
-		return stentry;
+		delete stentry;
 	}
+
+	stats.st.insert++;
+	stentry = new Scooby_STEntry(page, pc, offset);
+	recorder->record_trigger_access(page, pc, offset);
+	signature_table.push_back(stentry);
+	return stentry;
 }
 
 uint32_t Scooby::predict(uint64_t base_address, uint64_t page, uint32_t offset, State *state, vector<uint64_t> &pref_addr)

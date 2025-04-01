@@ -9,6 +9,7 @@
 #include "scooby_helper.h"
 #include "learning_engine_basic.h"
 #include "learning_engine_featurewise.h"
+#include "double_learning_engine_featurewise.h"
 
 using namespace std;
 
@@ -25,7 +26,7 @@ class Scooby : public Prefetcher
 private:
 	deque<Scooby_STEntry*> signature_table;
 	LearningEngineBasic *brain;
-	LearningEngineFeaturewise *brain_featurewise;
+	DoubleLearningEngineFeaturewise *brain_featurewise;
 	deque<Scooby_PTEntry*> prefetch_tracker;
 	Scooby_PTEntry *last_evicted_tracker;
 	uint8_t bw_level;

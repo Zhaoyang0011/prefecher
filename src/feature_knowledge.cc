@@ -134,7 +134,12 @@ void FeatureKnowledge::updateQ(State *state1, uint32_t action1, int32_t reward, 
 		tile_index1 = get_tile_index(tiling, state1);
 		tile_index2 = get_tile_index(tiling, state2);
 		Qsa1 = getQ(tiling, tile_index1, action1);
-		Qsa2 = getQ(tiling, tile_index2, action2);
+		Qsa2 = getQ(tiling, tile_index1, 0);
+		for(int i = 1; i < m_actions; ++i) {
+			float new_Q = getQ(tiling, tile_index1, i);
+			Qsa2 = Qsa2 > new_Q ? Qsa2 : new_Q;
+		}
+		getQ(tiling, tile_index2, action2);
 		Qsa1_old = Qsa1;
 		/* SARSA */
 		Qsa1 = Qsa1 + m_alpha * ((float)reward + m_gamma * Qsa2 - Qsa1);
@@ -235,9 +240,9 @@ string FeatureKnowledge::get_feature_string(State *state)
 		case F_PC:
 			ss << std::hex << pc << std::dec;
 			break;
-		case F_PC_Delta:
-			ss << std::hex << pc << std::dec << "|" << delta;
-			break;
+		// case F_PC_Delta:
+		// 	ss << std::hex << pc << std::dec << "|" << delta;
+		// 	break;
 		default:
 			/* @RBERA TODO: define the rest */
 			assert(false);
