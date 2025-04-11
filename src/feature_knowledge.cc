@@ -129,15 +129,31 @@ void FeatureKnowledge::updateQ(State *state1, uint32_t action1, int32_t reward, 
 	float QSa1_old_overall = retrieveQ(state1, action1);
 	float QSa2_old_overall = retrieveQ(state2, action2);
 
+	float best_prob = 1 - 0.0018228444309622588 + 0.0018228444309622588 / m_actions;
+	float prob = 0.0018228444309622588 / m_actions;
+
 	for(uint32_t tiling = 0; tiling < m_num_tilings; ++tiling)
 	{
 		tile_index1 = get_tile_index(tiling, state1);
 		tile_index2 = get_tile_index(tiling, state2);
 		Qsa1 = getQ(tiling, tile_index1, action1);
-		Qsa2 = getQ(tiling, tile_index1, 0);
+		// Qsa2 = getQ(tiling, tile_index1, 0);
+		float max_Q = getQ(tiling, tile_index1, 0);
+		int max_index = 0;
 		for(int i = 1; i < m_actions; ++i) {
 			float new_Q = getQ(tiling, tile_index1, i);
-			Qsa2 = Qsa2 > new_Q ? Qsa2 : new_Q;
+			if(new_Q > max_Q) {
+				max_Q = new_Q;
+				max_index = i;
+			}
+		}
+		for(int i = 0; i < m_actions; ++i) {
+			float new_Q = getQ(tiling, tile_index1, i);
+			if(i != max_index) {
+				Qsa2 += prob * new_Q;
+			} else {
+				Qsa2 += best_prob * new_Q;
+			}
 		}
 		getQ(tiling, tile_index2, action2);
 		Qsa1_old = Qsa1;
